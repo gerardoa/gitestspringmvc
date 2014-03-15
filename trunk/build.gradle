@@ -1,7 +1,24 @@
 apply plugin: 'java'
+apply plugin: 'groovy'
+
 ant.importBuild 'build.xml'
+
 sourceCompatibility = 1.5
 version = '1.0'
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+    }
+
+    test {
+        java {
+            srcDir 'test'
+        }
+    }
+}
 
 repositories {
     mavenCentral()
@@ -11,9 +28,28 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
     compile 'org.springframework:spring-context:4.0.2.RELEASE'
     compile 'org.springframework:spring-webmvc:4.0.2.RELEASE'
+    compile 'org.apache.tomcat:tomcat-servlet-api:7.0.52'
 }
 
 
+def d1 = ant.references['master-classpath']
+def d2 = project.configurations.compile.files
+
+def antFileSet = ant.fileset(dir: 'src') {
+    d2.each {
+        include(name: it)
+    }
+}
+d1.addFileset(antFileSet)
+
+d1.list().each {
+    println it
+}
+
+d2.each {
+   // println it
+}
+println ant.references['master-classpath']
 //appserverHome='C:/Bin/apache-tomcat-7.0.52'
 //appserverLib=appserverHome + '/lib'
 //deployPath=appserverHome + '/webapps'
@@ -21,7 +57,7 @@ dependencies {
 //tomcatManagerUsername='tomcat'
 //tomcatManagerPassword='s3cret'
 
-task testIly << {
+task testIly {
 //    println System.properties
-    println deployPath
+    println 'hi'
 }
