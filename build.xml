@@ -39,7 +39,7 @@
         <echo message=""/>
     </target>
 
-    <target name="buildT" description="Compile main source tree java files">
+    <target name="buildAnt" description="Compile main source tree java files">
         <mkdir dir="${build.dir}"/>
         <javac destdir="${build.dir}" source="1.5" target="1.5" debug="true"
                deprecation="false" optimize="false" failonerror="true">
@@ -48,7 +48,7 @@
         </javac>
     </target>
 
-    <target name="deploy" depends="buildT" description="Deploy application">
+    <target name="deploy" depends="buildAnt" description="Deploy application">
         <copy todir="${deploy.path}/${name}" preservelastmodified="true">
             <fileset dir="${web.dir}">
                 <include name="**/*.*"/>
@@ -56,7 +56,7 @@
         </copy>
     </target>
 
-    <target name="deploywar" depends="buildT" description="Deploy application as a WAR file">
+    <target name="deploywar" depends="buildAnt" description="Deploy application as a WAR file">
         <war destfile="${name}.war"
              webxml="${web.dir}/WEB-INF/web.xml">
             <fileset dir="${web.dir}">
@@ -148,7 +148,7 @@
         </javac>
     </target>
 
-    <target name="tests" depends="buildT, buildtests" description="Run tests">
+    <target name="tests" depends="buildAnt, buildtests" description="Run tests">
         <junit printsummary="on"
                fork="false"
                haltonfailure="false"
@@ -173,6 +173,22 @@
             ***********************************************************
             ***********************************************************
         </fail>
+    </target>
+
+    <target name="cleanAnt" description="Clean output directories">
+        <delete>
+            <fileset dir="${build.dir}">
+                <include name="**/*.class"/>
+            </fileset>
+        </delete>
+    </target>
+
+    <target name="undeploy" description="Un-Deploy application">
+        <delete>
+            <fileset dir="${deploy.path}/${name}">
+                <include name="**/*.*"/>
+            </fileset>
+        </delete>
     </target>
 
 </project>

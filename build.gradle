@@ -1,8 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'groovy'
 
-ant.importBuild 'build.xml'
-
 sourceCompatibility = 1.5
 version = '1.0'
 
@@ -24,40 +22,60 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    junitAnt
+}
+
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
     compile 'org.springframework:spring-context:4.0.2.RELEASE'
     compile 'org.springframework:spring-webmvc:4.0.2.RELEASE'
     compile 'org.apache.tomcat:tomcat-servlet-api:7.0.52'
-}
+    compile 'taglibs:standard:1.1.2'
+    compile 'javax.servlet:jstl:1.1.2'
 
-
-def d1 = ant.references['master-classpath']
-def d2 = project.configurations.compile.files
-
-def antFileSet = ant.fileset(dir: 'src') {
-    d2.each {
-        include(name: it)
+    junitAnt 'junit:junit:4.8.2'
+    junitAnt('org.apache.ant:ant-junit:1.9.2') {
+        transitive = false
+    }
+    junitAnt('org.apache.ant:ant-junit4:1.9.2') {
+        transitive = false
     }
 }
-d1.addFileset(antFileSet)
+// http://forums.gradle.org/gradle/topics/ant_imports_taskdefs_failed_to_create_task_or_type_junit
+ant.taskdef(name: 'junit', classname: 'org.apache.tools.ant.taskdefs.optional.junit.JUnitTask',
+        classpath: configurations.junitAnt.asPath)
+ant.importBuild 'build.xml'
 
-d1.list().each {
-    println it
+def oldMasterClassPath = ant.references['master-classpath']
+def compileFiles = project.configurations.compile.files
+def testCompileFiles = project.configurations.testCompile.files
+def newMasterClassPath = ant.path {
+    compileFiles.each {
+        pathelement(location: it)
+    }
+    testCompileFiles.each {
+        pathelement(location: it)
+    }
+    pathelement(path: ant.properties['build.dir'])
 }
+ant.references['master-classpath'] = newMasterClassPath;
 
-d2.each {
-   // println it
-}
-println ant.references['master-classpath']
-//appserverHome='C:/Bin/apache-tomcat-7.0.52'
-//appserverLib=appserverHome + '/lib'
-//deployPath=appserverHome + '/webapps'
-//tomcatManagerUrl='http://localhost:8080/manager'
-//tomcatManagerUsername='tomcat'
-//tomcatManagerPassword='s3cret'
+//oldMasterClassPath.list().each {
+//    println it
+//}
 
-task testIly {
+//compileFiles.each {
+//    println it
+//}
+
+
+task testIly << {
 //    println System.properties
     println 'hi'
+}
+
+task copyToLib(type: Copy) {
+    from project.configurations.compile.files
+    into ant.properties['web.dir'] + '/WEB-INF/lib'
 }
